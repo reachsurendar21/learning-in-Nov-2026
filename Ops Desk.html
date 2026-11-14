@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Ops Desk</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--g1:#0b1e3a;--g2:#0f4c5c;--g3:#3b2a6b;--glass:rgba(255,255,255,.09);--gb:rgba(255,255,255,.2);--ink:#eef4fb;--mute:#a9bccf;--acc:#2dd4bf;--warn:#fb923c;--ok:#4ade80;--in:rgba(255,255,255,.1);color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+[data-theme=sunset]{--g1:#3a0f2e;--g2:#7a2c3a;--g3:#c2562b;--acc:#fbbf24}
+[data-theme=forest]{--g1:#06231a;--g2:#14532d;--g3:#0f766e;--acc:#a3e635}
+[data-theme=rose]{--g1:#3b0a2a;--g2:#9d174d;--g3:#6d28d9;--acc:#f9a8d4}
+[data-theme=graphite]{--g1:#0b0d10;--g2:#1c232b;--g3:#2b3440;--acc:#60a5fa}
+[data-theme=ocean]{--g1:#021b3a;--g2:#0369a1;--g3:#0e7490;--acc:#7dd3fc}
+[data-theme=frost]{--g1:#dbe7f5;--g2:#e8e1f5;--g3:#d5f0ec;--glass:rgba(255,255,255,.55);--gb:rgba(255,255,255,.9);--ink:#17232f;--mute:#506072;--acc:#0f766e;--warn:#c2410c;--ok:#15803d;--in:rgba(20,40,60,.07);color-scheme:light}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100vh;color:var(--ink);font:14px/1.45 Manrope,system-ui,Segoe UI,sans-serif;background:radial-gradient(900px 600px at 10% 0,var(--g3),transparent 60%),radial-gradient(800px 600px at 100% 100%,var(--g2),transparent 60%),var(--g1);background-attachment:fixed}
+.wrap{max-width:1320px;margin:auto;padding:18px}
+.glass{background:var(--glass);backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%);border:1px solid var(--gb);border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.18)}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:14px;padding:14px 16px}
+h1{font-size:24px;margin:0;font-weight:800;letter-spacing:-.4px}.sub{color:var(--mute);font-size:13px}
+button,input,select,textarea{font:inherit;color:var(--ink)}
+.btn{background:var(--acc);color:#04201c;border:0;border-radius:9px;padding:8px 13px;font-weight:700;cursor:pointer}
+.btn.g{background:var(--in);color:var(--ink);border:1px solid var(--gb)}.btn.r{background:var(--warn);color:#fff}
+.btn:hover,.chip:hover,.kpi:hover{filter:brightness(1.12)}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.tools{display:flex;flex-wrap:wrap;gap:8px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:12px}
+.kpi{padding:12px 14px;cursor:pointer;text-align:left;border:1px solid var(--gb)}.kpi.on{outline:2px solid var(--acc)}
+.kpi b{display:block;font-size:30px;line-height:1.1;font-weight:800}.kpi span{color:var(--mute);font-size:12.5px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.chip{background:var(--in);border:1px solid var(--gb);border-radius:99px;padding:6px 12px;cursor:pointer;font-weight:600;font-size:13px}
+.chip.on{background:var(--acc);color:#04201c;border-color:transparent}.chip small{opacity:.7;margin-left:4px}
+input,select,textarea{background:var(--in);border:1px solid var(--gb);border-radius:9px;padding:7px 10px;width:100%}
+select option{color:#111}
+.bar input[type=search]{flex:1;min-width:160px;width:auto}.bar select{width:auto}
+.board{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(250px,1fr);gap:10px;overflow-x:auto;padding-bottom:6px}
+.col{padding:8px;min-height:220px}.col.drag{outline:2px dashed var(--acc)}
+.col h3{margin:4px 6px 8px;font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:4px}
+.col h3 span.t{flex:1}.ib{background:var(--in);border:1px solid var(--gb);border-radius:7px;padding:1px 8px;cursor:pointer;font-weight:700}
+.card{background:var(--in);border:1px solid var(--gb);border-left:4px solid var(--c);border-radius:10px;padding:9px 10px;margin-bottom:8px;cursor:pointer}
+.card.over{box-shadow:0 0 0 1px var(--warn)}.card:hover{transform:translateY(-1px)}
+.card h4{margin:0 0 3px;font-size:14px}.meta{color:var(--mute);font-size:12px;display:flex;flex-wrap:wrap;gap:3px 10px}
+.tag{font-weight:700;color:var(--c)}.late{color:var(--warn);font-weight:700}
+.prog{height:4px;background:var(--in);border-radius:4px;margin-top:6px;overflow:hidden}.prog i{display:block;height:100%;background:var(--ok)}
+.stg{font-size:11.5px;color:var(--mute);margin-top:5px}
+.empty{color:var(--mute);text-align:center;padding:16px 6px;font-size:12.5px}
+.cal{padding:12px}.cal .hd{display:flex;align-items:center;gap:8px;margin-bottom:8px}.cal .hd b{flex:1;font-size:16px}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.dow{color:var(--mute);font-size:12px;text-align:center}
+.day{min-height:92px;background:var(--in);border:1px solid var(--gb);border-radius:8px;padding:4px;cursor:pointer;overflow:hidden}
+.day.o{opacity:.45}.day.td{outline:2px solid var(--acc)}.day small{color:var(--mute)}
+.ev{display:block;font-size:11px;border-radius:5px;padding:1px 5px;margin-top:2px;background:var(--c);color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;padding:14px;z-index:20}
+.ov.show{display:flex}.md{width:min(560px,100%);max-height:90vh;overflow:auto;padding:16px;background:var(--g1);background:color-mix(in srgb,var(--g1) 80%,transparent)}
+.md h2{margin:0 0 10px;font-size:18px}.f{display:grid;grid-template-columns:1fr 1fr;gap:8px}.f .w{grid-column:1/-1}
+label{font-size:12px;color:var(--mute);display:block;margin-bottom:2px}
+.rows .r1{display:flex;gap:6px;margin-bottom:6px}.rows input[type=color]{width:44px;padding:2px}.rows .ib{padding:4px 10px}
+.acts{display:flex;gap:8px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap}
+.files span{display:inline-flex;gap:6px;background:var(--in);border-radius:99px;padding:2px 9px;margin:3px 4px 0 0;font-size:12px}
+.toast{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);padding:9px 16px;z-index:30;display:none}
+@media(max-width:760px){.f{grid-template-columns:1fr}.day{min-height:64px}}
+</style></head><body><div class="wrap">
+<header class="glass"><div><h1>Ops Desk</h1><div class="sub" id="today"></div></div>
+<div class="tools"><button class="btn" data-a="new">Add task</button><button class="btn g" data-a="view" id="vbtn">Calendar</button><button class="btn g" data-a="imp">Import Excel</button><button class="btn g" data-a="xl">Export Excel</button><button class="btn g" data-a="set">Customize</button><select id="theme" aria-label="Theme" style="width:auto"></select></div></header>
+<section class="kpis" id="kpis"></section>
+<div class="bar" id="chips"></div>
+<div class="bar"><input type="search" id="q" placeholder="Search task, WO ID, name, vendor"><select id="pf"><option value="">All priorities</option><option>High</option><option>Medium</option><option>Low</option></select></div>
+<main id="main"></main></div>
+<input type="file" id="file" accept=".xlsx,.xls,.csv" hidden><input type="file" id="att" multiple hidden>
+<div class="ov" id="ov"><div class="md glass" id="md"></div></div><div class="toast glass" id="toast"></div>
+<script>
+var KEY="opsdesk.v2",THEMES=["aurora","ocean","sunset","forest","rose","graphite","frost"];
+var $=function(i){return document.getElementById(i)};
+function d(n){var x=new Date();x.setDate(x.getDate()+n);return iso(x)}
+function iso(x){return x.getFullYear()+"-"+("0"+(x.getMonth()+1)).slice(-2)+"-"+("0"+x.getDate()).slice(-2)}
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+var S,cat="All",kf="",view="board",mon=new Date(),editId=null,tgtCol=null,tmpFiles=[];
+function seed(){return{cats:[{n:"Work Order",c:"#14b8a6"},{n:"BG Check",c:"#8b5cf6"},{n:"Vendor Renewal",c:"#f97316"},{n:"Rate Increase",c:"#eab308"},{n:"NDA / Ethics",c:"#3b82f6"},{n:"Onboarding",c:"#ec4899"}],cols:["To do","In progress","Waiting","Done"],stages:["WO created","WO approved","BG initiated","Contract created","DeliveryHub - Allocated","WO - Sent to Legal"],theme:"",tasks:[
+{t:"Approve new WO",r:"WO-1042",c:"Work Order",p:"High",due:d(1),s:"In progress",st:"WO approved"},
+{t:"Create contract after BG clear",r:"WO-1038",c:"Work Order",p:"Medium",due:d(3),s:"To do",st:"Contract created"},
+{t:"Send WO to Legal",r:"WO-1031",c:"Work Order",p:"High",due:d(-1),s:"Waiting",st:"WO - Sent to Legal"},
+{t:"Initiate background check",r:"New joiner A",c:"BG Check",p:"High",due:d(0),s:"To do"},
+{t:"Chase BG report",r:"New joiner B",c:"BG Check",p:"Medium",due:d(2),s:"Waiting"},
+{t:"Renew subvendor agreement",r:"Subvendor 1",c:"Vendor Renewal",p:"High",due:d(7),s:"To do"},
+{t:"Submit rate increase request",r:"Contractor C",c:"Rate Increase",p:"Medium",due:d(5),s:"In progress"},
+{t:"Collect signed NDA",r:"Contractor D",c:"NDA / Ethics",p:"High",due:d(1),s:"Waiting"},
+{t:"Allocate in DeliveryHub",r:"WO-1029",c:"Onboarding",p:"Medium",due:d(2),s:"In progress",st:"DeliveryHub - Allocated"}].map(function(x,i){x.id="s"+i;x.n="";x.f=[];return x})}}
+function load(){try{var v=localStorage.getItem(KEY);if(v)S=JSON.parse(v)}catch(e){}if(!S)S=seed();if(!S.theme)S.theme=matchMedia("(prefers-color-scheme: light)").matches?"frost":"aurora"}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function toast(m){var t=$("toast");t.textContent=m;t.style.display="block";clearTimeout(toast.h);toast.h=setTimeout(function(){t.style.display="none"},2600)}
+function col(n){var c=S.cats.find(function(x){return x.n===n});return c?c.c:"#94a3b8"}
+function isDone(x){return x.s===S.cols[S.cols.length-1]}
+function late(x){return !isDone(x)&&x.due&&x.due<d(0)}
+function vis(){var q=$("q").value.toLowerCase(),pf=$("pf").value;return S.tasks.filter(function(x){
+if(cat!=="All"&&x.c!==cat)return false;if(pf&&x.p!==pf)return false;if(q&&(x.t+" "+x.r+" "+x.n).toLowerCase().indexOf(q)<0)return false;
+if(kf==="open"&&isDone(x))return false;if(kf==="week"&&(isDone(x)||!x.due||x.due<d(0)||x.due>d(7)))return false;
+if(kf==="over"&&!late(x))return false;if(kf==="high"&&(isDone(x)||x.p!=="High"))return false;if(kf==="done"&&!isDone(x))return false;return true})}
+function render(){
+document.documentElement.dataset.theme=S.theme;$("theme").value=S.theme;
+$("today").textContent=new Date().toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+var T=S.tasks,op=T.filter(function(x){return !isDone(x)});
+var K=[["open","Open",op.length],["week","Due in 7 days",op.filter(function(x){return x.due>=d(0)&&x.due<=d(7)}).length],["over","Overdue",op.filter(late).length],["high","High priority",op.filter(function(x){return x.p==="High"}).length],["done","Done",T.length-op.length]];
+$("kpis").innerHTML=K.map(function(k){return'<button class="kpi glass '+(kf===k[0]?"on":"")+'" data-k="'+k[0]+'"><b>'+k[2]+'</b><span>'+k[1]+'</span></button>'}).join("");
+$("chips").innerHTML=["All"].concat(S.cats.map(function(c){return c.n})).map(function(n){var c=n==="All"?T.length:T.filter(function(x){return x.c===n}).length;return'<button class="chip '+(cat===n?"on":"")+'" data-c="'+esc(n)+'">'+esc(n)+'<small>'+c+'</small></button>'}).join("")+'<button class="chip" data-a="set">+ Category</button>';
+$("vbtn").textContent=view==="board"?"Calendar":"Board";
+$("main").innerHTML=view==="board"?board():calendar()}
+function board(){var v=vis();return'<div class="board">'+S.cols.map(function(cn){var it=v.filter(function(x){return x.s===cn});
+return'<div class="col glass" data-col="'+esc(cn)+'"><h3><span class="t">'+esc(cn)+' ('+it.length+')</span><button class="ib" data-addcol="'+esc(cn)+'" title="Add task here">+</button><button class="ib" data-impcol="'+esc(cn)+'" title="Import Excel into this column">⇪</button></h3>'+(it.length?it.map(card).join(""):'<div class="empty">Drop or add a task</div>')+'</div>'}).join("")+'</div>'}
+function card(x){var i=S.stages.indexOf(x.st);return'<div class="card '+(late(x)?"over":"")+'" draggable="true" data-id="'+x.id+'" style="--c:'+col(x.c)+'"><h4>'+esc(x.t)+'</h4><div class="meta"><span class="tag">'+esc(x.c)+'</span>'+(x.r?'<span>'+esc(x.r)+'</span>':'')+'<span>'+x.p+'</span><span class="'+(late(x)?"late":"")+'">'+(x.due||"No date")+(late(x)?" · overdue":"")+'</span>'+((x.f||[]).length?'<span>📎'+x.f.length+'</span>':'')+'</div>'+(i>-1?'<div class="stg">'+esc(x.st)+'</div><div class="prog"><i style="width:'+((i+1)/S.stages.length*100)+'%"></i></div>':'')+'</div>'}
+function calendar(){var y=mon.getFullYear(),m=mon.getMonth(),first=new Date(y,m,1),off=(first.getDay()+6)%7,v=vis(),h="";
+for(var i=0;i<42;i++){var dt=new Date(y,m,1-off+i),k=iso(dt),ev=v.filter(function(x){return x.due===k});
+h+='<div class="day '+(dt.getMonth()!==m?"o":"")+(k===d(0)?" td":"")+'" data-day="'+k+'"><small>'+dt.getDate()+'</small>'+ev.slice(0,3).map(function(x){return'<span class="ev" data-id="'+x.id+'" style="--c:'+col(x.c)+'">'+esc(x.t)+'</span>'}).join("")+(ev.length>3?'<small>+'+(ev.length-3)+' more</small>':'')+'</div>'}
+return'<div class="cal glass"><div class="hd"><button class="btn g" data-m="-1">‹</button><b>'+first.toLocaleDateString(undefined,{month:"long",year:"numeric"})+'</b><button class="btn g" data-m="0">Today</button><button class="btn g" data-m="1">›</button></div><div class="grid">'+["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map(function(w){return'<div class="dow">'+w+'</div>'}).join("")+h+'</div></div>'}
+function open(h){$("md").innerHTML=h;$("ov").classList.add("show")}
+function close(){$("ov").classList.remove("show")}
+function opts(a,s){return a.map(function(o){return'<option'+(o===s?" selected":"")+'>'+esc(o)+'</option>'}).join("")}
+function taskForm(id,pre){var x=id?S.tasks.find(function(a){return a.id===id}):Object.assign({t:"",r:"",c:S.cats[0]?S.cats[0].n:"",p:"Medium",due:"",s:S.cols[0],st:"",n:"",f:[]},pre||{});editId=id;tmpFiles=(x.f||[]).slice();
+open('<h2>'+(id?"Edit task":"New task")+'</h2><div class="f"><div class="w"><label>Task</label><input id="mT" value="'+esc(x.t)+'"></div><div><label>Name / WO ID / vendor</label><input id="mR" value="'+esc(x.r)+'"></div><div><label>Category</label><select id="mC">'+opts(S.cats.map(function(c){return c.n}),x.c)+'</select></div><div><label>Due date (calendar)</label><input type="date" id="mD" value="'+esc(x.due)+'"></div><div><label>Priority</label><select id="mP">'+opts(["High","Medium","Low"],x.p)+'</select></div><div><label>Status</label><select id="mS">'+opts(S.cols,x.s)+'</select></div><div><label>Stage</label><select id="mSt"><option value="">None</option>'+opts(S.stages,x.st)+'</select></div><div class="w"><label>Notes</label><textarea id="mN" rows="3">'+esc(x.n)+'</textarea></div><div class="w"><label>Attachments (file names)</label><button class="btn g" data-a="att" type="button">Attach files</button><div class="files" id="fl"></div></div></div><div class="acts">'+(id?'<button class="btn r" data-a="del">Delete</button>':'')+'<button class="btn g" data-a="close">Cancel</button><button class="btn" data-a="save">Save</button></div>');drawFiles()}
+function drawFiles(){$("fl").innerHTML=tmpFiles.map(function(f,i){return'<span>'+esc(f)+' <a href="#" data-rf="'+i+'" style="color:inherit">✕</a></span>'}).join("")}
+function saveTask(){var t=$("mT").value.trim();if(!t){$("mT").focus();return}
+var o={t:t,r:$("mR").value.trim(),c:$("mC").value,due:$("mD").value,p:$("mP").value,s:$("mS").value,st:$("mSt").value,n:$("mN").value,f:tmpFiles};
+if(editId)Object.assign(S.tasks.find(function(a){return a.id===editId}),o);else{o.id="n"+Date.now();S.tasks.unshift(o)}save();close();render()}
+function rowsHtml(a,color){return a.map(function(o){var n=color?o.n:o,c=color?o.c:"";return'<div class="r1" data-old="'+esc(n)+'"><input class="rn" value="'+esc(n)+'">'+(color?'<input type="color" class="rc" value="'+c+'">':'')+'<button class="ib" data-rm type="button">✕</button></div>'}).join("")}
+function settings(){open('<h2>Customize</h2><label>Categories</label><div class="rows" id="rc">'+rowsHtml(S.cats,1)+'</div><button class="btn g" data-add="rc" data-color="1" type="button">+ Add category</button><br><br><label>Status columns (last one = Done)</label><div class="rows" id="rs">'+rowsHtml(S.cols)+'</div><button class="btn g" data-add="rs" type="button">+ Add column</button><br><br><label>Stages</label><div class="rows" id="rt">'+rowsHtml(S.stages)+'</div><button class="btn g" data-add="rt" type="button">+ Add stage</button><div class="acts"><button class="btn r" data-a="reset">Reset all</button><button class="btn g" data-a="close">Cancel</button><button class="btn" data-a="sset">Save</button></div>')}
+function readRows(id,color){return Array.prototype.map.call($(id).querySelectorAll(".r1"),function(r){var n=r.querySelector(".rn").value.trim();return{old:r.dataset.old,n:n,c:color?r.querySelector(".rc").value:""}}).filter(function(r){return r.n})}
+function saveSet(){var C=readRows("rc",1),L=readRows("rs"),G=readRows("rt");if(!C.length||!L.length){toast("Keep at least one category and one column");return}
+var cm={},lm={},gm={};C.forEach(function(r){if(r.old)cm[r.old]=r.n});L.forEach(function(r){if(r.old)lm[r.old]=r.n});G.forEach(function(r){if(r.old)gm[r.old]=r.n});
+S.tasks.forEach(function(x){x.c=cm[x.c]||C[0].n;x.s=lm[x.s]||L[0].n;x.st=gm[x.st]||""});
+S.cats=C.map(function(r){return{n:r.n,c:r.c}});S.cols=L.map(function(r){return r.n});S.stages=G.map(function(r){return r.n});save();close();render()}
+function importXl(f,colName){var rd=new FileReader();rd.onload=function(e){try{var wb=XLSX.read(e.target.result,{type:"array",cellDates:true}),rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:""}),n=0;
+rows.forEach(function(r){var g=function(){var k;for(var a=0;a<arguments.length;a++){k=Object.keys(r).find(function(z){return z.trim().toLowerCase()===arguments[a]}.bind(null));}return""};
+var get=function(names){var k=Object.keys(r).find(function(z){return names.indexOf(z.trim().toLowerCase())>-1});return k?r[k]:""};
+var t=String(get(["task","title","description","name"])).trim();if(!t)return;var dv=get(["due","due date","date"]);if(dv instanceof Date)dv=iso(dv);else dv=String(dv).slice(0,10);
+var c=String(get(["category","type"])).trim()||(cat!=="All"?cat:S.cats[0].n);if(!S.cats.some(function(z){return z.n===c}))S.cats.push({n:c,c:"#"+Math.floor(Math.random()*0xffffff).toString(16).padStart(6,"0")});
+var s=String(get(["status"])).trim();if(S.cols.indexOf(s)<0)s=colName||S.cols[0];var p=String(get(["priority"])).trim();if(["High","Medium","Low"].indexOf(p)<0)p="Medium";
+var st=String(get(["stage"])).trim();S.tasks.push({id:"i"+Date.now()+n,t:t,r:String(get(["ref","wo id","wo","id","reference"])).trim(),c:c,p:p,due:dv,s:s,st:S.stages.indexOf(st)>-1?st:"",n:String(get(["notes","note","remarks"])),f:[]});n++});
+save();render();toast(n+" rows imported")}catch(x){toast("Could not read that file")}};rd.readAsArrayBuffer(f)}
+function exportXl(){var rows=S.tasks.map(function(x){return{Task:x.t,Ref:x.r,Category:x.c,Priority:x.p,Due:x.due,Status:x.s,Stage:x.st,Notes:x.n}});
+var ws=XLSX.utils.json_to_sheet(rows),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,"Tasks");try{XLSX.writeFile(wb,"ops_desk_tasks.xlsx");toast("Exported")}catch(e){toast("Download blocked here")}}
+document.addEventListener("click",function(e){var t=e.target,el;
+if(el=t.closest("[data-k]")){kf=kf===el.dataset.k?"":el.dataset.k;render();return}
+if(el=t.closest("[data-c]")){cat=el.dataset.c;render();return}
+if(el=t.closest("[data-addcol]")){taskForm(null,{s:el.dataset.addcol,c:cat!=="All"?cat:undefined});return}
+if(el=t.closest("[data-impcol]")){tgtCol=el.dataset.impcol;$("file").click();return}
+if(el=t.closest("[data-m]")){var v=+el.dataset.m;mon=v===0?new Date():new Date(mon.getFullYear(),mon.getMonth()+v,1);render();return}
+if(el=t.closest(".ev")){taskForm(el.dataset.id);return}
+if(el=t.closest("[data-day]")){taskForm(null,{due:el.dataset.day});return}
+if(el=t.closest(".card")){taskForm(el.dataset.id);return}
+if(el=t.closest("[data-rf]")){e.preventDefault();tmpFiles.splice(+el.dataset.rf,1);drawFiles();return}
+if(el=t.closest("[data-rm]")){el.parentNode.remove();return}
+if(el=t.closest("[data-add]")){var r=document.createElement("div");r.className="r1";r.dataset.old="";r.innerHTML='<input class="rn" placeholder="Name">'+(el.dataset.color?'<input type="color" class="rc" value="#14b8a6">':'')+'<button class="ib" data-rm type="button">✕</button>';$(el.dataset.add).appendChild(r);r.firstChild.focus();return}
+if(t===$("ov")){close();return}
+if(el=t.closest("[data-a]")){var a=el.dataset.a;
+if(a==="new")taskForm(null,{c:cat!=="All"?cat:undefined});else if(a==="view"){view=view==="board"?"cal":"board";render()}
+else if(a==="imp"){tgtCol=null;$("file").click()}else if(a==="xl")exportXl();else if(a==="set")settings();else if(a==="close")close();
+else if(a==="save")saveTask();else if(a==="att")$("att").click();else if(a==="sset")saveSet();
+else if(a==="del"){S.tasks=S.tasks.filter(function(x){return x.id!==editId});save();close();render()}
+else if(a==="reset"){if(confirm("Reset all tasks and settings to the sample data?")){var th=S.theme;S=seed();S.theme=th;save();close();render()}}}});
+$("file").addEventListener("change",function(e){if(e.target.files[0])importXl(e.target.files[0],tgtCol);e.target.value=""});
+$("att").addEventListener("change",function(e){Array.prototype.forEach.call(e.target.files,function(f){tmpFiles.push(f.name)});drawFiles();e.target.value=""});
+$("q").addEventListener("input",render);$("pf").addEventListener("change",render);
+$("theme").innerHTML=THEMES.map(function(t){return'<option value="'+t+'">'+t[0].toUpperCase()+t.slice(1)+'</option>'}).join("");
+$("theme").addEventListener("change",function(){S.theme=this.value;save();render()});
+var dragId=null;
+document.addEventListener("dragstart",function(e){var c=e.target.closest&&e.target.closest(".card");if(c){dragId=c.dataset.id;e.dataTransfer.setData("text/plain",dragId)}});
+document.addEventListener("dragover",function(e){var c=e.target.closest&&e.target.closest(".col");if(c){e.preventDefault();c.classList.add("drag")}});
+document.addEventListener("dragleave",function(e){var c=e.target.closest&&e.target.closest(".col");if(c)c.classList.remove("drag")});
+document.addEventListener("drop",function(e){var c=e.target.closest&&e.target.closest(".col");if(c&&dragId){e.preventDefault();S.tasks.find(function(a){return a.id===dragId}).s=c.dataset.col;dragId=null;save();render()}});
+document.addEventListener("keydown",function(e){if(e.key==="Escape")close()});
+load();render();
+</script></body></html>
